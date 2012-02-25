@@ -1,19 +1,25 @@
 package com.panjiesw.android.abd;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import nl.siegmann.epublib.domain.Book;
-import nl.siegmann.epublib.domain.TOCReference;
+import nl.siegmann.epublib.domain.MediaType;
+import nl.siegmann.epublib.domain.Resource;
 import nl.siegmann.epublib.epub.EpubReader;
-
+import nl.siegmann.epublib.service.MediatypeService;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ParseException;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -26,12 +32,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.panjiesw.android.abd.tools.Misc;
+import com.panjiesw.android.abd.tools.MonocleScriptInjector;
+import com.panjiesw.android.abd.views.EpubReaderView;
+
 public class AksesBukuDigitalActivity extends ListActivity {
 	
 	private static final String[] titles = {"Plain Tales from the Hills","Washington Square"};
 	private static final String[] authors = {"Rudyard Kipling","Henry James"};
 	private static final String[] path = {"books/kipling-plain-tales-from-the-hills.epub","books/james-washington-square.epub"};
-	private static final String LOG_D = "BUKU DIGITAL DEBUG";
 	
 	private LayoutInflater mInflater;
 	private List<RowData> data;
@@ -39,6 +48,9 @@ public class AksesBukuDigitalActivity extends ListActivity {
 	
 	private ProgressDialog mProgressDialog;
 	public static final int DIALOG_EBOOK_OPEN_PROGRESS = 0;
+	
+	public static final String ABD_PREF = "BukuDigitalPreferences";
+	boolean isMonocleFolder;
 	
     /** Called when the activity is first created. */
     @Override
@@ -60,9 +72,18 @@ public class AksesBukuDigitalActivity extends ListActivity {
         
         EbookListAdapter adapter = new EbookListAdapter(this, R.layout.row, R.id.row_title, data);
         setListAdapter(adapter);
+        
+        SharedPreferences settings = getSharedPreferences(ABD_PREF, 0);
+        isMonocleFolder = settings.getBoolean("monocleFolder", false);
+        if (!isMonocleFolder) {
+        	Log.w(Misc.TAG_W, "No Folder for epubtemp, attempt to creat it");
+        	new CreateFolderFilesAsync().execute("anu");
+		}else {
+			Log.i(Misc.TAG_I, "The epubtemp Folder is presents");
+		}
     }
-    
-    @Override
+
+	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case DIALOG_EBOOK_OPEN_PROGRESS:
@@ -83,22 +104,6 @@ public class AksesBukuDigitalActivity extends ListActivity {
     	new EbookLoadAsync().execute(position);
     }
     
-	private void logTableOfContents(List<TOCReference> tocReferences, int depth) {
-		if (tocReferences == null) {
-			return;
-		}
-		for (TOCReference tocReference : tocReferences) {
-			StringBuilder tocString = new StringBuilder();
-			for (int i = 0; i < depth; i++) {
-				tocString.append("\t");
-			}
-			tocString.append(tocReference.getTitle());
-			Log.i("epublib", tocString.toString());
-
-			logTableOfContents(tocReference.getChildren(), depth + 1);
-		}
-	}
-
 	private class RowData {
 		protected int mId;
 		protected String mTitle;
@@ -181,7 +186,7 @@ public class AksesBukuDigitalActivity extends ListActivity {
 		}
 	}
 	
-	private class EbookLoadAsync extends AsyncTask<Integer, Integer, String> {
+	private class EbookLoadAsync extends AsyncTask<Integer, Integer, String[]> {
 		
 		@Override
 		protected void onPreExecute() {
@@ -190,35 +195,126 @@ public class AksesBukuDigitalActivity extends ListActivity {
 		}
 		
 		@Override
-		protected String doInBackground(Integer... params) {
+		protected String[] doInBackground(Integer... params) {
 			int pos = params[0];
+			String[] toScriptMetadata = new String[2];
+			String[] js = new String[2];
 			try {
 				publishProgress(10);
 				InputStream epubInputStream = getAssets().open(path[pos]);
 				publishProgress(30);
 				Book book = (new EpubReader()).readEpub(epubInputStream);
-				publishProgress(50);
-				Log.d(LOG_D, "author(s): " + book.getMetadata().getAuthors());
-				publishProgress(60);
-				Log.d(LOG_D, "title: " + book.getTitle());
-				publishProgress(70);
-				logTableOfContents(book.getTableOfContents().getTocReferences(), 0);
-				publishProgress(100);
+				List<Resource> allPage = book.getContents();
+				String[] toScriptPath = new String[allPage.size()];
+				String[] toScriptChapters = new String[allPage.size()];
+				for (int i = 0; i < allPage.size(); i++) {
+					writeFile(allPage.get(i).getData(), "/component/"+allPage.get(i).getHref());
+					toScriptPath[i] = allPage.get(i).getHref();
+					toScriptChapters[i] = book.getTableOfContents().getTocReferences().get(i).getTitle();
+				}
+				toScriptMetadata[0] = book.getMetadata().getAuthors().toString();
+				toScriptMetadata[1] = book.getMetadata().getFirstTitle();
+				js = MonocleScriptInjector.getJavascript(toScriptPath,toScriptChapters,toScriptMetadata);
+				MediaType[] mTypeCSS = {MediatypeService.CSS};
+				List<Resource> allCSS = book.getResources().getResourcesByMediaTypes(mTypeCSS);
+				for (int i = 0; i < allCSS.size(); i++) {
+					writeFile(allPage.get(i).getData(), "/component/"+allCSS.get(i).getHref());
+				}
+				MediaType[] mType = {MediatypeService.PNG,MediatypeService.GIF,MediatypeService.JPG};
+				List<Resource> allRes = book.getResources().getResourcesByMediaTypes(mType);
+				for (int i = 0; i < allRes.size(); i++) {
+					Log.i(Misc.TAG_I, allRes.get(i).getHref());
+					writeFile(allRes.get(i).getData(), "/component/"+allRes.get(i).getHref());
+				}
 			} catch (IOException e) {
-				Log.e(LOG_D, e.getMessage());
+				Log.e(Misc.TAG_E, e.getMessage());
 			}
-			return null;
+			return js;
 		}
+		
+//		private void logTableOfContents(List<TOCReference> tocReferences, int depth) {
+//			if (tocReferences == null) {
+//				return;
+//			}
+//			for (TOCReference tocReference : tocReferences) {
+//				StringBuilder tocString = new StringBuilder();
+//				for (int i = 0; i < depth; i++) {
+//					tocString.append("\t");
+//				}
+//				tocString.append(tocReference.getTitle());
+//				Log.i("epublib", tocString.toString());
+//
+//				logTableOfContents(tocReference.getChildren(), depth + 1);
+//			}
+//		}
 		
 		@Override
 		protected void onProgressUpdate(Integer... values) {
-			Log.d(LOG_D, String.valueOf(values[0]));
+			Log.d(Misc.TAG_D, String.valueOf(values[0]));
 			mProgressDialog.setProgress(values[0]);
 		}
 		
 		@Override
-		protected void onPostExecute(String result) {
+		protected void onPostExecute(String[] result) {
 			dismissDialog(DIALOG_EBOOK_OPEN_PROGRESS);
+			Intent intent = new Intent(AksesBukuDigitalActivity.this, EpubReaderView.class);
+			intent.putExtra("jsonData", result);
+			startActivity(intent);
 		}
+	}
+	
+	private class CreateFolderFilesAsync extends AsyncTask<String, String, String> {
+
+		@Override
+		protected String doInBackground(String... path) {
+			File dir = getDir("epubtemp", MODE_WORLD_READABLE);
+			File compoDir = new File(dir.getPath()+"/component");
+			compoDir.mkdir();
+			return "Making Temp Folder is Done";
+		}
+		
+		@Override
+		protected void onPostExecute(String result) {
+			isMonocleFolder = true;
+			Log.v(Misc.TAG_V, result);
+		}
+	}
+	
+//	private byte[] readFile(InputStream is) throws IOException {
+//		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//		byte[] b = new byte[1024];
+//		int bytesRead;
+//		try {
+//			while ((bytesRead = is.read(b)) != -1) {
+//				bos.write(b, 0, bytesRead);
+//			}
+//			return bos.toByteArray();
+//		} finally {
+//			is.close();
+//		}
+//	}
+	
+	private boolean writeFile(byte[] data, String path) throws IOException,FileNotFoundException {
+		if (path.indexOf("/") != -1) {
+			String dir = path.substring(0, path.lastIndexOf("/"));
+			File f = new File(getDir("epubtemp", MODE_WORLD_READABLE).getPath()+dir);
+			f.mkdirs();
+		}
+		FileOutputStream fos = new FileOutputStream(getDir("epubtemp", MODE_WORLD_READABLE).getPath()+path);
+		try {
+			fos.write(data);
+			return true;
+		} finally {
+			fos.close();
+		}
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		SharedPreferences settings = getSharedPreferences(ABD_PREF, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putBoolean("monocleFolder", isMonocleFolder);
+		editor.commit();
 	}
 }

@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Buku Digital Epub</title>
+        <link rel="stylesheet" href="monocle/monocorestyle.css" type="text/css" />
+        <link rel="stylesheet" href="monocle/monoctrlstyle.css" type="text/css" />
+        <style>
+			#reader {
+				width: 1024px;
+				height: 500px;
+/*				border: 1px solid #000;*/
+			}
+			.readerCenter {
+				text-align: center;
+			}
+        </style>
+        <script src="json2.js" type="text/javascript" charset="utf-8"></script>
+        <script src="monocle/monocore.js" type="text/javascript" charset="utf-8"></script>
+        <script src="monocle/monoctrl.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+            function callFromActivity(a, b) {
+                console.log(a);
+                var components = JSON.parse(a), contents = JSON.parse(b);
+                var bookData = {
+                getComponents : function() {
+                    return components;
+                },
+                getContents : function() {
+                return contents;
+                },
+                getComponent : function(componentId) {
+                    return {
+                        url : componentId
+                    }
+                }, getMetaData : function(key) {
+                    return {
+                    title : 'Plain Tales from the Hills',
+                    creator : '[Kipling, Rudyard]'
+                    }[key];
+                }
+            };
+
+            Monocle.Reader('reader',bookData);
+
+            // console.log("manaaaaaaaaaaaaaaaaaaaaaa");
+            // console.log(bookData);
+            };
+        </script>
+    </head>
+    <body>
+<!--         <input type="button" value="Say hello" onClick="anuanu()" /> -->
+        <div class="readerCenter">
+            <div id="reader">
+            
+            </div>
+        </div>
+        
+        <!-- <script>
+            function anuanu(){
+               callFromActivity(
+                   '["component\/title.html","component\/epubbooksinfo.html","component\/chapter-001.html","component\/chapter-002.html","component\/chapter-003.html","component\/chapter-004.html","component\/chapter-005.html","component\/chapter-006.html","component\/chapter-007.html","component\/chapter-008.html","component\/chapter-009.html","component\/chapter-010.html","component\/chapter-011.html","component\/chapter-012.html","component\/chapter-013.html","component\/chapter-014.html","component\/chapter-015.html","component\/chapter-016.html","component\/chapter-017.html","component\/chapter-018.html","component\/chapter-019.html","component\/chapter-020.html","component\/chapter-021.html","component\/chapter-022.html","component\/chapter-023.html","component\/chapter-024.html","component\/chapter-025.html","component\/chapter-026.html","component\/chapter-027.html","component\/chapter-028.html","component\/chapter-029.html","component\/chapter-030.html","component\/chapter-031.html","component\/chapter-032.html","component\/chapter-033.html","component\/chapter-034.html","component\/chapter-035.html"]',
+                   '[{"title":"Title Page","src":"component\/title.html"},{"title":"epubBooks Information","src":"component\/epubbooksinfo.html"},{"title":"LISPETH.","src":"component\/chapter-001.html"},{"title":"THREE AND—AN EXTRA.","src":"component\/chapter-002.html"},{"title":"THROWN AWAY.","src":"component\/chapter-003.html"},{"title":"MISS YOUGHAL’S SAIS.","src":"component\/chapter-004.html"},{"title":"YOKED WITH AN UNBELIEVER.","src":"component\/chapter-005.html"},{"title":"FALSE DAWN.","src":"component\/chapter-006.html"},{"title":"THE RESCUE OF PLUFFLES.","src":"component\/chapter-007.html"},{"title":"CUPID’S ARROWS.","src":"component\/chapter-008.html"},{"title":"HIS CHANCE IN LIFE.","src":"component\/chapter-009.html"},{"title":"WATCHES OF THE NIGHT.","src":"component\/chapter-010.html"},{"title":"THE OTHER MAN.","src":"component\/chapter-011.html"},{"title":"CONSEQUENCES.","src":"component\/chapter-012.html"},{"title":"THE CONVERSION OF AURELIAN McGOGGIN.","src":"component\/chapter-013.html"},{"title":"A GERM DESTROYER.","src":"component\/chapter-014.html"},{"title":"KIDNAPPED.","src":"component\/chapter-015.html"},{"title":"THE ARREST OF LIEUTENANT GOLIGHTLY.","src":"component\/chapter-016.html"},{"title":"THE HOUSE OF SUDDHOO","src":"component\/chapter-017.html"},{"title":"HIS WEDDED WIFE.","src":"component\/chapter-018.html"},{"title":"THE BROKEN LINK HANDICAPPED.","src":"component\/chapter-019.html"},{"title":"BEYOND THE PALE.","src":"component\/chapter-020.html"},{"title":"IN ERROR.","src":"component\/chapter-021.html"},{"title":"A BANK FRAUD.","src":"component\/chapter-022.html"},{"title":"TOD’S AMENDMENT.","src":"component\/chapter-023.html"},{"title":"IN THE PRIDE OF HIS YOUTH.","src":"component\/chapter-024.html"},{"title":"PIG.","src":"component\/chapter-025.html"},{"title":"THE ROUT OF THE WHITE HUSSARS.","src":"component\/chapter-026.html"},{"title":"THE BRONCKHORST DIVORCE–CASE.","src":"component\/chapter-027.html"},{"title":"VENUS ANNODOMINI.","src":"component\/chapter-028.html"},{"title":"THE BISARA OF POOREE.","src":"component\/chapter-029.html"},{"title":"THE GATE OF A HUNDRED SORROWS.","src":"component\/chapter-030.html"},{"title":"THE STORY OF MUHAMMAD DIN.","src":"component\/chapter-031.html"},{"title":"ON THE STRENGTH OF A LIKENESS.","src":"component\/chapter-032.html"},{"title":"WRESSLEY OF THE FOREIGN OFFICE.","src":"component\/chapter-033.html"},{"title":"BY WORD OF MOUTH.","src":"component\/chapter-034.html"},{"title":"TO BE HELD FOR REFERENCE.","src":"component\/chapter-035.html"}]'
+               ); 
+            }
+        </script> -->
+    </body>
+</html>
