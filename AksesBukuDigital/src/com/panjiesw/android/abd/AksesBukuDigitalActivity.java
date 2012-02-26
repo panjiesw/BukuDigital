@@ -38,9 +38,9 @@ import com.panjiesw.android.abd.views.EpubReaderView;
 
 public class AksesBukuDigitalActivity extends ListActivity {
 	
-	private static final String[] titles = {"Plain Tales from the Hills","Washington Square"};
-	private static final String[] authors = {"Rudyard Kipling","Henry James"};
-	private static final String[] path = {"books/kipling-plain-tales-from-the-hills.epub","books/james-washington-square.epub"};
+	private static final String[] titles = {"Plain Tales from the Hills","Washington Square","Princess Silver Tears and One Feather","Lake Loves Dolphins"};
+	private static final String[] authors = {"Rudyard Kipling","Henry James","Marie Rose","Lake Gifford"};
+	private static final String[] path = {"books/kipling-plain-tales-from-the-hills.epub","books/james-washington-square.epub","books/Princess_Silver_Tears_and_One_Feather.epub","books/Lake_Loves_Dolphins.epub"};
 	
 	private LayoutInflater mInflater;
 	private List<RowData> data;
@@ -90,6 +90,7 @@ public class AksesBukuDigitalActivity extends ListActivity {
 			mProgressDialog = new ProgressDialog(this);
 			mProgressDialog.setMessage("Loading eBook file...");
 			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.setCancelable(false);
 			mProgressDialog.setMax(100);
 			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 			mProgressDialog.show();
@@ -200,32 +201,49 @@ public class AksesBukuDigitalActivity extends ListActivity {
 			String[] toScriptMetadata = new String[2];
 			String[] js = new String[2];
 			try {
-				publishProgress(10);
 				InputStream epubInputStream = getAssets().open(path[pos]);
-				publishProgress(30);
 				Book book = (new EpubReader()).readEpub(epubInputStream);
+				
 				List<Resource> allPage = book.getContents();
+				MediaType[] mTypeCSS = {MediatypeService.CSS};
+				List<Resource> allCSS = book.getResources().getResourcesByMediaTypes(mTypeCSS);
+				MediaType[] mType = {MediatypeService.PNG,MediatypeService.GIF,MediatypeService.JPG};
+				List<Resource> allRes = book.getResources().getResourcesByMediaTypes(mType);
+				
+				int tProg = allPage.size()+allCSS.size()+allRes.size();
+				int mP = 0;
 				String[] toScriptPath = new String[allPage.size()];
 				String[] toScriptChapters = new String[allPage.size()];
+				
 				for (int i = 0; i < allPage.size(); i++) {
 					writeFile(allPage.get(i).getData(), "/component/"+allPage.get(i).getHref());
 					toScriptPath[i] = allPage.get(i).getHref();
-					toScriptChapters[i] = book.getTableOfContents().getTocReferences().get(i).getTitle();
+					if (i>=book.getTableOfContents().getTocReferences().size()) {
+						toScriptChapters[i] = "title unknown";
+					} else {
+						toScriptChapters[i] = book.getTableOfContents().getTocReferences().get(i).getTitle();
+					}
+					mP++;
+					publishProgress(mP*100/tProg);
 				}
-				toScriptMetadata[0] = book.getMetadata().getAuthors().toString();
-				toScriptMetadata[1] = book.getMetadata().getFirstTitle();
-				js = MonocleScriptInjector.getJavascript(toScriptPath,toScriptChapters,toScriptMetadata);
-				MediaType[] mTypeCSS = {MediatypeService.CSS};
-				List<Resource> allCSS = book.getResources().getResourcesByMediaTypes(mTypeCSS);
+				
 				for (int i = 0; i < allCSS.size(); i++) {
 					writeFile(allPage.get(i).getData(), "/component/"+allCSS.get(i).getHref());
+					mP++;
+					publishProgress(mP*100/tProg);
 				}
-				MediaType[] mType = {MediatypeService.PNG,MediatypeService.GIF,MediatypeService.JPG};
-				List<Resource> allRes = book.getResources().getResourcesByMediaTypes(mType);
+				
 				for (int i = 0; i < allRes.size(); i++) {
 					Log.i(Misc.TAG_I, allRes.get(i).getHref());
 					writeFile(allRes.get(i).getData(), "/component/"+allRes.get(i).getHref());
+					mP++;
+					publishProgress(mP*100/tProg);
 				}
+				
+				toScriptMetadata[0] = book.getMetadata().getAuthors().toString();
+				toScriptMetadata[1] = book.getMetadata().getFirstTitle();
+				js = MonocleScriptInjector.getJavascript(toScriptPath,toScriptChapters,toScriptMetadata);
+				
 			} catch (IOException e) {
 				Log.e(Misc.TAG_E, e.getMessage());
 			}
@@ -298,7 +316,8 @@ public class AksesBukuDigitalActivity extends ListActivity {
 		if (path.indexOf("/") != -1) {
 			String dir = path.substring(0, path.lastIndexOf("/"));
 			File f = new File(getDir("epubtemp", MODE_WORLD_READABLE).getPath()+dir);
-			f.mkdirs();
+			if(!f.exists())
+				f.mkdirs();
 		}
 		FileOutputStream fos = new FileOutputStream(getDir("epubtemp", MODE_WORLD_READABLE).getPath()+path);
 		try {

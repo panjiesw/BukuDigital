@@ -22,14 +22,25 @@ public class MonocleScriptInjector {
 				obj.put("src", "file:///data/data/com.panjiesw.android.abd/app_epubtemp/component/"+path[i]);
 				contentsJson.put(obj);
 			} catch (JSONException e) {
-				e.printStackTrace();
+				Log.e(Misc.TAG_E, e.getMessage());
+			}
+		}
+		
+		JSONObject metasJson = new JSONObject();
+		for (int i = 0; i < metas.length; i++) {
+			try {
+				metasJson.put("title", metas[1]);
+				metasJson.put("creator", metas[0]);
+			} catch (JSONException e) {
+				Log.e(Misc.TAG_E, e.getMessage());
 			}
 		}
 		
 		Log.d(MonocleScriptInjector.class.toString(), titleJson.toString());
 		Log.d(MonocleScriptInjector.class.toString(), contentsJson.toString());
+		Log.d(MonocleScriptInjector.class.toString(), metasJson.toString());
 		
-		String[] bookData = {titleJson.toString(),contentsJson.toString()};
+		String[] bookData = {titleJson.toString(),contentsJson.toString(),metasJson.toString()};
 		
 		return bookData;
 	}

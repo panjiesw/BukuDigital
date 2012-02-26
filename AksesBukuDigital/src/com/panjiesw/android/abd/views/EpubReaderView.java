@@ -26,8 +26,8 @@ public class EpubReaderView extends Activity {
 		epubView.setWebViewClient(new WebViewClient(){
 			@Override  
 			  public void onPageFinished(WebView view, String url) {
-				view.loadUrl("javascript:callFromActivity('"+js[0]+"','"+js[1]+"')");
-				Log.d("anuanuanuanu", "javascript:callFromActivity('"+js[0]+"','"+js[1]+"')");
+				view.loadUrl("javascript:callFromActivity('"+js[0]+"','"+js[1]+"','"+js[2]+"')");
+				Log.d("anuanuanuanu", "javascript:callFromActivity('"+js[0]+"','"+js[1]+"','"+js[2]+"')");
 			  }
 		});
 		epubView.loadUrl("file:///android_asset/index.html");
