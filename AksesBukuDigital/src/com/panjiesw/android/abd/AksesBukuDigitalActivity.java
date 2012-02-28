@@ -91,6 +91,7 @@ public class AksesBukuDigitalActivity extends ListActivity {
 			mProgressDialog.setMessage("Loading eBook file...");
 			mProgressDialog.setIndeterminate(false);
 			mProgressDialog.setCancelable(false);
+			mProgressDialog.setProgress(0);
 			mProgressDialog.setMax(100);
 			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 			mProgressDialog.show();

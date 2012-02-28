@@ -18,6 +18,7 @@ public class EpubReaderView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.epubreader);
+		overridePendingTransition(R.anim.slide_in_toleft, R.anim.slide_out_toleft);
 		epubView = (WebView)findViewById(R.id.epubWebView);
 		epubView.getSettings().setJavaScriptEnabled(true);
 		epubView.getSettings().setAllowFileAccess(true);
@@ -27,7 +28,7 @@ public class EpubReaderView extends Activity {
 			@Override  
 			  public void onPageFinished(WebView view, String url) {
 				view.loadUrl("javascript:callFromActivity('"+js[0]+"','"+js[1]+"','"+js[2]+"')");
-				Log.d("anuanuanuanu", "javascript:callFromActivity('"+js[0]+"','"+js[1]+"','"+js[2]+"')");
+//				Log.d("anuanuanuanu", "javascript:callFromActivity('"+js[0]+"','"+js[1]+"','"+js[2]+"')");
 			  }
 		});
 		epubView.loadUrl("file:///android_asset/index.html");
@@ -46,5 +47,11 @@ public class EpubReaderView extends Activity {
 	            deleteRecursive(child);
 
 	    fileOrDirectory.delete();
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		overridePendingTransition(R.anim.slide_in_toright, R.anim.slide_out_toright);
 	}
 }

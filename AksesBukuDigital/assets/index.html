@@ -1,34 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0" />
         <title>Buku Digital Epub</title>
         <link rel="stylesheet" href="monocle/monocorestyle.css" type="text/css" />
         <link rel="stylesheet" href="monocle/monoctrlstyle.css" type="text/css" />
-        <style>
-			body {
-				line-height: 1.5;
-			}
-			.runner {
-				font-variant: small-caps;
-				font-size: 87%;
-				color: #900;
-			}
-			#reader {
-				width: 900px;
-				height: 480px;
-				/*				border: 1px solid #000;*/
-			}
-			.readerCenter {
-				text-align: center;
-			}
-			.bookTitle {
-				position: absolute;
-				width: 100%;
-				text-align: center;
-				cursor: pointer;
-			}
-        </style>
+        <link rel="stylesheet" href="buku.css" type="text/css" media="screen" />
+        <script src="jquery.js" type="text/javascript" charset="utf-8"></script>
         <script src="json2.js" type="text/javascript" charset="utf-8"></script>
         <script src="monocle/monocore.js" type="text/javascript" charset="utf-8"></script>
         <script src="monocle/monoctrl.js" type="text/javascript" charset="utf-8"></script>
@@ -52,6 +31,12 @@
             };
 
             function callFromActivity(a, b, c) {
+                // $('#reader').css({
+                // width: 850,
+                // height: 500,
+                // margin: '50px 25px',
+                // border: '1px solid thin #000'
+                // });
                 console.log(a);
                 var components = JSON.parse(a), contents = JSON.parse(b), metadata = JSON.parse(c);
                 var bookData = {
@@ -88,21 +73,44 @@
                             rdr.showControl(toc);
                         }
                     });
+
+                    var pageNumber = {
+                        runners : [],
+                        createControlElements : function(page) {
+                            var cntr = document.createElement('div');
+                            cntr.className = "pageNumber";
+                            var runner = document.createElement('div');
+                            runner.className = "runner";
+                            cntr.appendChild(runner);
+                            this.runners.push(runner);
+                            this.update(page);
+                            return cntr;
+                        },
+                        update : function(page, pageNumber) {
+                            if(pageNumber) {
+                                this.runners[page.m.pageIndex].innerHTML = pageNumber;
+                            }
+                        }
+                    }
+                    rdr.addControl(pageNumber, 'page');
+                    rdr.listen('monocle:pagechange', function(evt) {
+                        pageNumber.update(evt.m.page, evt.m.pageNumber);
+                    });
                 });
             };
-
-            // function anuanu(){
-            // callFromActivity(
-            // '["file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/title.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/epubbooksinfo.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-001.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-002.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-003.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-004.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-005.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-006.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-007.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-008.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-009.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-010.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-011.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-012.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-013.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-014.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-015.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-016.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-017.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-018.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-019.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-020.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-021.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-022.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-023.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-024.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-025.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-026.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-027.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-028.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-029.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-030.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-031.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-032.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-033.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-034.html","file:\/\/\/data\/data\/com.panjiesw.android.abd\/app_epubtemp\/component\/chapter-035.html"]',
-            // '',
-            // ''
-            // );
-            // }
         </script>
     </head>
     <body>
-        <!--         <input type="button" value="Open Dialog" onClick="anuanu()" /> -->
-        <div class="readerCenter">
+        <div id="readerBg">
+            <div class="board"></div>
+            <div class="jacket"></div>
+            <div class="dummyPage"></div>
+            <div class="dummyPage"></div>
+            <div class="dummyPage"></div>
+            <div class="dummyPage"></div>
+            <div class="dummyPage"></div>
+        </div>
+        <div class="readerCont">
             <div id="reader"></div>
         </div>
     </body>
